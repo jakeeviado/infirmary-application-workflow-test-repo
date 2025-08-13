@@ -27,12 +27,11 @@ jobs:
         run: |
           $latestTag = git describe --tags --abbrev=0
           if ($latestTag) {
-            $version = $latestTag -replace '^v', ''
+            $version = $latestTag -replace '[^0-9\.]', ''
             echo "version=$version" >> $env:GITHUB_OUTPUT
             echo "tag=$latestTag" >> $env:GITHUB_OUTPUT
             echo "Found version: $version from tag: $latestTag"
           } else {
-            # fallback into this version
             $version = "1.0.0"
             echo "version=$version" >> $env:GITHUB_OUTPUT
             echo "tag=v$version" >> $env:GITHUB_OUTPUT
