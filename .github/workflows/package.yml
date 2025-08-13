@@ -52,6 +52,10 @@ jobs:
           Start-Process -FilePath ".\wix311.exe" -ArgumentList "/install", "/quiet", "/norestart" -Wait
           echo "C:\Program Files (x86)\WiX Toolset v3.11\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
 
+      - name: Update pom.xml version
+        run: |
+          mvn versions:set -DnewVersion=${{ steps.get-version.outputs.version }} -DgenerateBackupPoms=false
+
       - name: Run clean build with Maven
         run: mvn clean package
 
