@@ -32,7 +32,7 @@ jobs:
             echo "tag=$latestTag" >> $env:GITHUB_OUTPUT
             echo "Found version: $version from tag: $latestTag"
           } else {
-            # Fallback
+            # fallback into this version
             $version = "1.0.0"
             echo "version=$version" >> $env:GITHUB_OUTPUT
             echo "tag=v$version" >> $env:GITHUB_OUTPUT
@@ -40,7 +40,7 @@ jobs:
           }
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4  # Updated to v4
+        uses: actions/setup-java@v3
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -58,36 +58,14 @@ jobs:
       - name: Project version
         run: echo "Building version ${{ steps.get-version.outputs.version }} from tag ${{ steps.get-version.outputs.tag }}"
 
-      - name: List target directory contents (for debugging)
-        run: |
-          echo "Contents of target directory:"
-          Get-ChildItem -Path target/ -Recurse | Format-Table Name, FullName
-          echo "Looking for JAR files specifically:"
-          Get-ChildItem -Path target/ -Filter "*.jar" | Format-Table Name, FullName
-
-      - name: Create package directory
-        run: mkdir -p target/package
-
-      - name: Find the main JAR file
-        id: find-jar
-        run: |
-          $jarFile = Get-ChildItem -Path target/ -Filter "*infirmary-application*.jar" | Where-Object { $_.Name -notlike "*-sources.jar" -and $_.Name -notlike "*-javadoc.jar" } | Select-Object -First 1
-          if ($jarFile) {
-            echo "jar-name=$($jarFile.Name)" >> $env:GITHUB_OUTPUT
-            echo "Found JAR: $($jarFile.Name)"
-          } else {
-            echo "No suitable JAR file found! Available JARs:"
-            Get-ChildItem -Path target/ -Filter "*.jar" | ForEach-Object { echo $_.Name }
-            exit 1
-          }
 
       - name: Create JavaFX application installer artifact
         run: |
-          jpackage --input target/package `
+          jpackage --input target `
             --name InfirmaryApplication `
-            --main-jar "${{ steps.find-jar.outputs.jar-name }}" `
+            --main-jar "infirmary-application-${{ steps.get-version.outputs.version }}.jar" `
             --type exe `
-            --dest target/package `
+            --dest target `
             --win-menu `
             --win-shortcut `
             --module-path "target/lib" `
@@ -96,19 +74,19 @@ jobs:
             --vendor "RoCS" `
             --description "Infirmary Desktop Application" `
             --win-dir-chooser `
-            --verbose
+            --verbose `
 
       - name: Upload the installer artifact
         uses: actions/upload-artifact@v4
         with:
           name: InfirmaryApplication-Installer-${{ steps.get-version.outputs.version }}
-          path: target/package/InfirmaryApplication-*.exe
+          path: target/InfirmaryApplication-*.exe
 
       - name: Upload installer to release
         if: github.event_name == 'workflow_run'
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.get-version.outputs.tag }}
-          files: target/package/InfirmaryApplication-*.exe
+          files: target/InfirmaryApplication-*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
