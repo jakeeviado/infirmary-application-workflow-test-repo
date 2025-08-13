@@ -55,15 +55,14 @@ jobs:
         run: echo "Building version ${{ steps.get-version.outputs.version }} from tag ${{ steps.get-version.outputs.tag }}"
 
       - name: Set project version based on latest Git tag
-        run: mvn versions:set -DnewVersion=${{ steps.get-version.outputs.version }}
-
-      - name: Remove backup pom
-        run: rm -f pom.xml.versionsBackup
-        shell: bash
+        run: mvn versions:set "-DnewVersion=${{ steps.get-version.outputs.version }}"
 
       - name: Run clean build with Maven
         run: mvn clean package
 
+      - name: Remove backup pom
+        run: rm -f pom.xml.versionsBackup
+        shell: bash
 
       - name: Create JavaFX application installer artifact
         run: |
