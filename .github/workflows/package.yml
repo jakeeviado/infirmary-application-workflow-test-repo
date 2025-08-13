@@ -63,7 +63,7 @@ jobs:
 
       - name: Create JavaFX application installer artifact
         run: |
-          jpackage --input target/ `
+          jpackage --input target/package `
             --name InfirmaryApplication `
             --main-jar "infirmary-application-${{ steps.get-version.outputs.version }}.jar" `
             --type exe `
